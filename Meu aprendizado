@@ -1,0 +1,52 @@
+📦 Docker
+Tem objetivo de implementar a base da infraestrutura utilizando containers, permitindo que todas as aplicações sejam executadas em ambientes isolados, padronizados e facilmente reproduzíveis.
+
+Ele é uma plataforma de virtualização baseada em containers. Diferente de uma máquina virtual tradicional, um container compartilha o kernel do sistema operacional, tornando sua execução muito mais leve e rápida.
+
+Na prática, ele permite empacotar uma aplicação juntamente com todas as suas dependências, garantindo que ela funcione da mesma forma em qualquer ambiente.
+
+Como este projeto será a base para diversos sistemas CRM e aplicações de Inteligência Artificial, é importante que toda a infraestrutura seja facilmente replicada em qualquer servidor.
+
+Com Docker, consigo instalar e gerenciar cada serviço de forma independente, reduzindo conflitos entre dependências e facilitando futuras atualizações.
+
+Toda a infraestrutura do projeto vai passar a ser executada através de containers, tornando o ambiente mais organizado, portátil e fácil de reproduzir.
+
+🖥️ Portainer
+Tem objetivo de adicionar uma interface gráfica para facilitar o gerenciamento da infraestrutura Docker.
+
+Escolhi ele, porque é uma plataforma web que permite administrar containers Docker por meio de uma interface gráfica via um subdomínio conectado via Cloudflare Tunnel, pois o meu é um servidor local, caso fosse um VPS, eu utilizaria a própria Cloudflare para a proteção.
+
+Com ele, consigo criar, iniciar, parar, remover e monitorar containers sem depender exclusivamente do terminal.
+
+Embora o Docker seja normalmente administrado via linha de comando, o Portainer oferece uma visualização completa da infraestrutura, facilitando a administração diária.
+
+Também é muito útil para acompanhar volumes, redes, imagens e consumo de recursos.
+
+🐘 PostgreSQL
+Como o PostgreSQL é um Sistema Gerenciador de Banco de Dados Relacional (SGBD) open source e também conhecido por sua estabilidade, desempenho, segurança e suporte a recursos avançados, escolhi trabalhar com ele para ter um banco de dados relacional para armazenar todas as informações da plataforma CRM..
+
+
+⚡ Redis
+Como o Redis tem objetivo de adicionar um serviço de cache e processamento de filas para aumentar a performance da aplicação.
+
+Também é amplamente utilizado como broker de mensagens para processamento de tarefas assíncronas.
+
+📂 MinIO
+Disponibiliza um sistema de armazenamento de objetos compatível com Amazon S3.
+
+Ele permite armazenar arquivos como documentos, imagens, vídeos e anexos sem utilizar o banco de dados para esse tipo de conteúdo.
+
+Escolhi porque a plataforma CRM armazenará contratos, documentos, arquivos enviados por clientes, imagens e anexos, e ele é uma solução robusta para esse tipo de armazenamento.
+
+☁️ Cloudflare Tunnel
+Objetivo do Cloudflare tunnel é publicar serviços internos de forma segura sem expor diretamente o servidor à Internet.
+
+O Cloudflare Tunnel cria um túnel seguro entre o servidor e a infraestrutura da Cloudflare.
+
+Dessa forma, aplicações internas podem ser acessadas utilizando domínios públicos sem necessidade de abrir portas diretamente no firewall.
+
+Pretendo publicar aplicações como o CRM, APIs e outras ferramentas mantendo uma camada adicional de segurança.
+
+Também simplifica a exposição de serviços durante o desenvolvimento e futuras implantações.
+
+A infraestrutura passou a permitir a publicação segura de serviços internos utilizando a rede da Cloudflare, reduzindo a necessidade de exposição direta do servidor.
