@@ -1,0 +1,15 @@
+services:
+  auth-service:
+    build: .
+    container_name: auth-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"   # host:container -> acessível em http://SEU_SERVIDOR:8001
+    networks:
+      - plataforma_network
+
+networks:
+  plataforma_network:
+    external: true   # não cria a rede, usa a que já existe no seu servidor
