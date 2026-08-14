@@ -1,0 +1,22 @@
+# Imagem base leve do Node.js
+FROM node:20-alpine
+
+WORKDIR /code
+
+# Mesmo truque de cache que usamos no backend: copia só o package.json
+# primeiro, instala as dependências, e só depois copia o resto do código.
+COPY package.json ./
+RUN npm install
+
+ARG VITE_AUTH_SERVICE_URL
+ENV VITE_AUTH_SERVICE_URL=${VITE_AUTH_SERVICE_URL}
+
+
+COPY . .
+
+EXPOSE 5173
+
+# Roda o servidor de desenvolvimento do Vite (com recarregamento automático
+# ao salvar arquivos). Mais pra frente, quando o app estiver mais maduro,
+# criamos uma versão de PRODUÇÃO diferente (build estático + nginx).
+CMD ["npm", "run", "dev"]

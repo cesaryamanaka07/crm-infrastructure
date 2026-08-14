@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -17,7 +18,12 @@ token_scheme = HTTPBearer()
 
 @router.post("/login", response_model=TokenResponse)
 def login(dados: LoginRequest, db: Session = Depends(get_db)):
-    usuario = db.query(Usuario).filter(Usuario.email == dados.email).first()
+    email = dados.email.strip().lower()
+    usuario = (
+        db.query(Usuario)
+        .filter(func.lower(Usuario.email) == email)
+        .first()
+    )
 
     # Mensagem de erro genérica de propósito: não revelamos se foi o
     # e-mail ou a senha que estava errada (evita dar pistas a invasores)

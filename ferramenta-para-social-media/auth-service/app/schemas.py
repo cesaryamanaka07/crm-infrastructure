@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel, EmailStr
 
 
@@ -16,7 +17,7 @@ class TokenResponse(BaseModel):
 # O que a API devolve ao consultar dados do usuário logado
 # (repare que NÃO existe campo de senha aqui — nunca devolvemos isso)
 class UsuarioResponse(BaseModel):
-    id: str
+    id: UUID
     nome: str
     email: EmailStr
 

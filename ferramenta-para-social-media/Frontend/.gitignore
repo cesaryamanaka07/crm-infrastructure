@@ -20,14 +20,6 @@ backups/
 data/
 volumes/
 
-# Installed dependencies
-node_modules/
-
-# Generated build and Python cache files
-dist/
-__pycache__/
-*.py[cod]
-
 # Logs
 *.log
 logs/

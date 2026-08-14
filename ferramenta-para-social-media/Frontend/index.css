@@ -1,0 +1,332 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #f5f6f8;
+  color: #111827;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ---------- Tela de login (tela única, sem sidebar) ---------- */
+
+.tela-login-fundo {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e8f2fc 0%, #ffffff 55%, #fdf0e6 100%);
+}
+
+.tela-carregando {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.cartao-login {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(17, 24, 39, 0.08);
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.marca-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.icone-marca {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2f6fe4, #6ba4f7);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.texto-marca {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.ponto-marca {
+  color: #2f6fe4;
+}
+
+.cartao-login h1 {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.subtitulo-login {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.cartao-login label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  color: #374151;
+}
+
+.cartao-login input {
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.cartao-login input:focus {
+  outline: none;
+  border-color: #2f6fe4;
+  box-shadow: 0 0 0 3px rgba(47, 111, 228, 0.15);
+}
+
+.cartao-login button {
+  margin-top: 1.5rem;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 10px;
+  background-color: #2f6fe4;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cartao-login button:hover:not(:disabled) {
+  background-color: #2559bd;
+}
+
+.cartao-login button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mensagem-erro {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* ---------- Layout geral do app (sidebar + conteúdo) ---------- */
+
+.layout-app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.barra-lateral {
+  width: 240px;
+  flex-shrink: 0;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.marca {
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 0 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.marca span {
+  color: #2f6fe4;
+}
+
+.navegacao-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.item-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  color: #4b5563;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.item-nav:hover {
+  background-color: #f3f4f6;
+}
+
+.item-nav-ativo {
+  background-color: #eaf2fe;
+  color: #2f6fe4;
+}
+
+.item-sair {
+  color: #9ca3af;
+  margin-top: auto;
+}
+
+.conteudo-principal {
+  flex: 1;
+  padding: 2rem 2.5rem;
+  max-width: 1200px;
+}
+
+.topo-pagina {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+.topo-pagina h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.botao-primario {
+  padding: 0.6rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #2f6fe4;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botao-primario:hover {
+  background-color: #2559bd;
+}
+
+/* ---------- Cards de métrica ---------- */
+
+.grade-metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.cartao-metrica {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icone-metrica {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: #eaf2fe;
+  color: #2f6fe4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rotulo-metrica {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 0.15rem;
+}
+
+.valor-metrica {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+/* ---------- Top posts ---------- */
+
+.titulo-secao {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.grade-posts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.cartao-post {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cabecalho-cartao-post {
+  margin-bottom: 0.5rem;
+}
+
+.selo-posicao {
+  display: inline-block;
+  background-color: #eaf2fe;
+  color: #2f6fe4;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.cartao-post h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  line-height: 1.35;
+}
+
+.estatisticas-post {
+  display: flex;
+  gap: 1rem;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.estatisticas-post span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
