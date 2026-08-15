@@ -3,26 +3,24 @@ services:
     build:
       context: .
       dockerfile: dockerfile
+      args:
+        VITE_AUTH_SERVICE_URL: ${VITE_AUTH_SERVICE_URL}
+        VITE_CONTENT_SERVICE_URL: ${VITE_CONTENT_SERVICE_URL}
+        VITE_SOCIAL_SERVICE_URL: ${VITE_SOCIAL_SERVICE_URL}
 
     container_name: social-media-frontend
 
     restart: unless-stopped
 
     ports:
-      - "5173:5173"
+      - "${FRONTEND_HOST_PORT}:${FRONTEND_CONTAINER_PORT}"
 
     environment:
-      VITE_AUTH_SERVICE_URL: ${VITE_AUTH_SERVICE_URL}
-
-    volumes:
-      - .:/app
-      - frontend_node_modules:/app/node_modules
+      FRONTEND_CONTAINER_PORT: ${FRONTEND_CONTAINER_PORT}
+      NGINX_ENVSUBST_FILTER: ${NGINX_ENVSUBST_FILTER}
 
     networks:
       - plataforma_network
-
-volumes:
-  frontend_node_modules:
 
 networks:
   plataforma_network:

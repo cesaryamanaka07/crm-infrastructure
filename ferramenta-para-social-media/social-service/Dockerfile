@@ -1,0 +1,10 @@
+FROM python:3.12-slim
+
+WORKDIR /code
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app ./app
+COPY alembic.ini .
+COPY migrations ./migrations
+
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host \"$SERVICE_HOST\" --port \"$SERVICE_PORT\" --no-access-log"]

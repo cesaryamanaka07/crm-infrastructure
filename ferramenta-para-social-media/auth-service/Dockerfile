@@ -17,9 +17,7 @@ COPY criar_usuario.py .
 
 # Documenta (para humanos e ferramentas) que esse serviço escuta na porta 8000.
 # Isso não abre a porta sozinho, é só informativo.
-EXPOSE 8000
-
 # Comando que roda quando o container inicia:
 # sobe o servidor uvicorn, servindo o "app" definido em app/main.py,
 # escutando em todas as interfaces de rede, na porta 8000.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn app.main:app --host \"$SERVICE_HOST\" --port \"$SERVICE_PORT\""]

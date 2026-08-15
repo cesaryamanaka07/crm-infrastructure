@@ -1,6 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import CriarConteudo from './pages/CriarConteudo'
+import Marca from './pages/Marca'
+import Midias from './pages/Midias'
+import RedesSociais from './pages/RedesSociais'
+import Clientes from './pages/Clientes'
+import ArsenalCopy from './pages/ArsenalCopy'
+import ConteudosCriados from './pages/ConteudosCriados'
 
 // Placeholder simples para páginas que ainda vamos construir
 function EmConstrucao({ titulo }) {
@@ -18,8 +25,13 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/redes-sociais" element={<EmConstrucao titulo="Redes Sociais" />} />
-        <Route path="/criar-conteudo" element={<EmConstrucao titulo="Criar Conteúdo" />} />
+        <Route path="/clientes" element={<Clientes />} />
+        <Route path="/redes-sociais" element={<RedesSociais />} />
+        <Route path="/criar-conteudo" element={<CriarConteudo />} />
+        <Route path="/conteudos-criados" element={<ConteudosCriados />} />
+        <Route path="/marca" element={<Marca />} />
+        <Route path="/arsenal-copy" element={<ArsenalCopy />} />
+        <Route path="/midias" element={<Midias />} />
         {/* Qualquer outra URL redireciona para o login por enquanto */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

@@ -1,0 +1,17 @@
+services:
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NGINX_ENVSUBST_FILTER: ${NGINX_ENVSUBST_FILTER}
+    ports:
+      - "${GATEWAY_HOST_PORT}:${GATEWAY_CONTAINER_PORT}"
+    networks:
+      - plataforma_network
+
+networks:
+  plataforma_network:
+    external: true

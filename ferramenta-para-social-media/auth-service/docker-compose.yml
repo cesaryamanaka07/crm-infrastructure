@@ -6,9 +6,11 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,https://meuappsm.cesaryamanaka.com.br}
-    ports:
-      - "8001:8000"   # host:container -> acessível em http://SEU_SERVIDOR:8001
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      SERVICE_HOST: ${SERVICE_HOST}
+      SERVICE_PORT: ${SERVICE_PORT}
+    expose:
+      - "${SERVICE_PORT}"
     networks:
       - plataforma_network
 

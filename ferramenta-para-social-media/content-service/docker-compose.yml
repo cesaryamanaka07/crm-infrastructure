@@ -1,0 +1,19 @@
+services:
+  content-service:
+    build: .
+    container_name: content-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      SERVICE_HOST: ${SERVICE_HOST}
+      SERVICE_PORT: ${SERVICE_PORT}
+    expose:
+      - "${SERVICE_PORT}"
+    networks:
+      - plataforma_network
+
+networks:
+  plataforma_network:
+    external: true

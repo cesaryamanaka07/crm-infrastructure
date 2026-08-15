@@ -6,12 +6,6 @@ if (!AUTH_SERVICE_URL) {
   )
 }
 
-if (window.location.protocol === 'https:' && !AUTH_SERVICE_URL.startsWith('https://')) {
-  throw new Error(
-    'Em uma página HTTPS, VITE_AUTH_SERVICE_URL também precisa usar HTTPS.'
-  )
-}
-
 /**
  * Realiza o login no auth-service.
  *
