@@ -54,3 +54,14 @@ class Cliente(Base):
     nome: Mapped[str] = mapped_column(String(255), nullable=False)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     atualizado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+class GoogleConnection(Base):
+    __tablename__ = "google_conexoes"; __table_args__ = (UniqueConstraint("usuario_id", "cliente_id"), {"schema": "social"})
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    usuario_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
+    cliente_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("social.clientes.id", ondelete="CASCADE"), nullable=False, index=True)
+    email: Mapped[str] = mapped_column(String(320), nullable=False)
+    access_token: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    refresh_token: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    expira_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    atualizado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

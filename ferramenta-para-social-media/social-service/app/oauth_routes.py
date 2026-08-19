@@ -19,6 +19,7 @@ from app.oauth import (
     obter_paginas_facebook,
     obter_perfil,
     salvar_conexao,
+    trocar_token_instagram_longa_duracao,
     trocar_codigo,
 )
 from app.models import Cliente
@@ -68,15 +69,24 @@ async def receber_callback_oauth(
     code: str | None = None,
     error: str | None = None,
     error_description: str | None = None,
+    error_code: str | None = None,
+    error_message: str | None = None,
+    error_reason: str | None = None,
     db: Session = Depends(get_db),
 ):
     """Recebe o retorno do provedor, troca o code por token e salva a conexão."""
     if provider not in PROVIDERS:
         raise HTTPException(status_code=404, detail="Rede social não suportada")
 
-    if error or not code:
-        logger.warning("oauth_callback_recusado provider=%s error=%s", provider, error or "sem_codigo")
-        motivo = error_description or error
+    if error or error_code or not code:
+        logger.warning(
+            "oauth_callback_recusado provider=%s error=%s",
+            provider,
+            error or error_code or error_reason or "sem_codigo",
+        )
+        motivo = error_description or error_message or error_reason or error
+        if error_code and motivo:
+            motivo = f"{motivo} (código {error_code})"
         if not motivo:
             motivo = "O provedor não retornou o código de autorização; verifique a configuração do Login for Business"
         return _voltar_ao_frontend(
@@ -91,7 +101,13 @@ async def receber_callback_oauth(
         if not access_token:
             raise HTTPException(status_code=502, detail="O provedor não retornou o token de acesso")
 
-        if provider == "facebook":
+        if provider == "instagram":
+            token_longo = await trocar_token_instagram_longa_duracao(access_token)
+            access_token = token_longo["access_token"]
+            token["access_token"] = access_token
+            token["expires_in"] = token_longo.get("expires_in")
+
+        if provider in {"facebook", "facebook_page"}:
             paginas = await obter_paginas_facebook(access_token)
             if not paginas:
                 raise HTTPException(
@@ -105,7 +121,7 @@ async def receber_callback_oauth(
                         db=db,
                         usuario_id=registro.usuario_id,
                         cliente_id=registro.cliente_id,
-                        provider="facebook",
+                        provider="facebook_page",
                         external_id=str(pagina["id"]),
                         nome=pagina.get("name") or "Página do Facebook",
                         access_token=page_token,
@@ -113,7 +129,7 @@ async def receber_callback_oauth(
                         scopes=token.get("scope", ""),
                         expires_in=token.get("expires_in"),
                     )
-        elif provider == "instagram" and settings.instagram_auth_mode == "facebook":
+        elif provider == "instagram_facebook":
             contas = await obter_contas_instagram_facebook(access_token)
             if not contas:
                 raise HTTPException(
@@ -134,7 +150,13 @@ async def receber_callback_oauth(
                     expires_in=token.get("expires_in"),
                 )
         else:
-            external_id, nome = await obter_perfil(provider, access_token)
+            if provider == "instagram":
+                external_id = str(token.get("user_id") or "")
+                if not external_id:
+                    raise HTTPException(status_code=502, detail="Instagram não retornou o ID da conta autorizada")
+                nome = token.get("username") or f"Instagram {external_id}"
+            else:
+                external_id, nome = await obter_perfil(provider, access_token)
             salvar_conexao(
                 db=db,
                 usuario_id=registro.usuario_id,
@@ -148,11 +170,12 @@ async def receber_callback_oauth(
                 expires_in=token.get("expires_in"),
             )
     except HTTPException as exc:
-        logger.warning("oauth_processamento_falhou provider=%s status=%s", provider, exc.status_code)
+        logger.warning("oauth_processamento_falhou provider=%s status=%s detalhe=%s", provider, exc.status_code, str(exc.detail)[:180])
         return _voltar_ao_frontend(provider, erro=str(exc.detail))
     except (httpx.HTTPError, KeyError, ValueError):
         logger.exception("oauth_resposta_invalida provider=%s", provider)
         return _voltar_ao_frontend(provider, erro="Resposta inválida ou indisponível do provedor")
 
+    provider_exibicao = "instagram" if provider == "instagram_facebook" else provider
     logger.info("oauth_conectado provider=%s", provider)
-    return _voltar_ao_frontend(provider, conectado=True)
+    return _voltar_ao_frontend(provider_exibicao, conectado=True)

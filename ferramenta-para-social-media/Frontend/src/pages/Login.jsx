@@ -34,7 +34,7 @@ function Login() {
           <div className="icone-marca">
             <Layers size={22} strokeWidth={2.5} />
           </div>
-          <span className="texto-marca">Conteúdo<span className="ponto-marca">.</span></span>
+          <span className="texto-marca">Minha Ferramenta de Criação de Conteúdo<span className="ponto-marca">.</span></span>
         </div>
 
         <h1>Painel de Conteúdo</h1>

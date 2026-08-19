@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Download, FilePenLine, Save, Search, Trash2, X 
 import Sidebar from '../components/Sidebar'
 import { listarClientes } from '../api/clientesService'
 import { atualizarGeracao, excluirGeracao, excluirImagem, listarBiblioteca } from '../api/contentService'
+import { escolherClienteInicial } from '../utils/clienteAtivo'
 
 const NOMES_FORMATOS = { post_unico: 'Post único', carrossel: 'Carrossel', reels: 'Reels', story: 'Story' }
 
@@ -22,7 +23,7 @@ function ConteudosCriados() {
 
   useEffect(() => {
     Promise.all([listarClientes(), listarBiblioteca()]).then(([listaClientes, listaGeracoes]) => {
-      setClientes(listaClientes); setGeracoes(listaGeracoes)
+      setClientes(listaClientes); setGeracoes(listaGeracoes); setClienteId(escolherClienteInicial(listaClientes, 'todos'))
     }).catch((erro) => setMensagem(erro.message)).finally(() => setCarregando(false))
   }, [])
 

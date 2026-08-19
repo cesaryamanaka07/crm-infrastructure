@@ -1,0 +1,17 @@
+services:
+  blog-service:
+    build: .
+    container_name: blog-service
+    restart: unless-stopped
+    env_file:
+      - ../content-service/.env
+      - .env
+      - ../social-service/.env
+    expose:
+      - "8000"
+    networks:
+      - plataforma_network
+
+networks:
+  plataforma_network:
+    external: true

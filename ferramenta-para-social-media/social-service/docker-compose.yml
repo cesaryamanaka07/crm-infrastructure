@@ -8,8 +8,13 @@ services:
       - .env
     expose:
       - "${SERVICE_PORT}"
+    volumes:
+      - social_publicacoes_arquivos:/code/arquivos
     networks:
       - plataforma_network
+
+volumes:
+  social_publicacoes_arquivos:
 
 networks:
   plataforma_network:

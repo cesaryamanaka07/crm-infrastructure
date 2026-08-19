@@ -1,4 +1,5 @@
 import base64
+import json
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.auth import obter_usuario_id
 from app.ai import OmniRouteError, gerar_imagens, gerar_textos
 from app.database import get_db
-from app.models import ArsenalCopy, Conteudo, GeracaoImagemSalva, GeracaoTexto, ImagemSalva, Tecnica
+from app.models import ArsenalCopy, Conteudo, GeracaoImagemSalva, GeracaoTexto, ImagemSalva, Marca, NarrativaEstrategica, Tecnica
 from app.schemas import (
     ConteudoCreate,
     ConteudoResponse,
@@ -71,6 +72,9 @@ def criar_conteudo(
     valores = dados.model_dump()
     validar_cliente(valores.get("cliente_id"), usuario_id, db)
     slugs_tecnicas = valores.pop("tecnicas")
+    if valores.get("cliente_id") and not valores.get("hashtags_padrao"):
+        marca = db.scalar(select(Marca).where(Marca.usuario_id == usuario_id, Marca.cliente_id == valores["cliente_id"]))
+        valores["hashtags_padrao"] = list(marca.hashtags_padrao or []) if marca else []
     conteudo = Conteudo(usuario_id=usuario_id, **valores)
     conteudo.tecnicas_rel = buscar_tecnicas(slugs_tecnicas, db)
     db.add(conteudo)
@@ -172,13 +176,15 @@ async def gerar_conteudo(
             ArsenalCopy.cliente_id == conteudo.cliente_id,
         ))
     if arsenal:
-        selecionadas = [
-            f"{campo}: {arsenal.informacoes.get(campo)}"
-            for campo in conteudo.arsenal_campos
-            if arsenal.informacoes.get(campo)
-        ]
-        conteudo.contexto_arsenal = "\n".join(selecionadas)
+        conteudo.contexto_arsenal = json.dumps(arsenal.informacoes, ensure_ascii=False)
         conteudo.manual_arsenal = arsenal.manual_ia
+    if conteudo.cliente_id and conteudo.usar_narrativa:
+        narrativa = db.scalar(select(NarrativaEstrategica).where(
+            NarrativaEstrategica.usuario_id == usuario_id,
+            NarrativaEstrategica.cliente_id == conteudo.cliente_id,
+        ))
+        if narrativa:
+            conteudo.narrativa_estrategica = json.dumps(narrativa.resultado, ensure_ascii=False)
     try:
         modelo, itens = await gerar_textos(conteudo)
         resposta = GeracaoResponse(

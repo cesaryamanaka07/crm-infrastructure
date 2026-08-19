@@ -1,0 +1,79 @@
+x-typebot-common: &typebot-common
+  restart: unless-stopped
+  depends_on:
+    typebot-redis:
+      condition: service_healthy
+    typebot-db:
+      condition: service_healthy
+  networks:
+    - typebot_network
+  env_file:
+    - .env
+  environment:
+    REDIS_URL: redis://typebot-redis:6379
+
+services:
+  typebot-db:
+    image: postgres:16
+    container_name: typebot-db
+    restart: unless-stopped
+    volumes:
+      - typebot_db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: typebot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${TYPEBOT_POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d typebot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - typebot_network
+
+  typebot-redis:
+    image: redis:alpine
+    container_name: typebot-redis
+    restart: unless-stopped
+    command: --save 60 1 --loglevel warning
+    volumes:
+      - typebot_redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 10s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    networks:
+      - typebot_network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: typebot-mailpit
+    restart: unless-stopped
+    expose:
+      - "1025"
+    networks:
+      - typebot_network
+
+  typebot-builder:
+    <<: *typebot-common
+    image: baptistearno/typebot-builder:latest
+    container_name: typebot-builder
+    ports:
+      - "127.0.0.1:${TYPEBOT_BUILDER_HOST_PORT}:3000"
+
+  typebot-viewer:
+    <<: *typebot-common
+    image: baptistearno/typebot-viewer:latest
+    container_name: typebot-viewer
+    ports:
+      - "127.0.0.1:${TYPEBOT_VIEWER_HOST_PORT}:3000"
+
+networks:
+  typebot_network:
+    name: typebot_network
+
+volumes:
+  typebot_db_data:
+  typebot_redis_data:

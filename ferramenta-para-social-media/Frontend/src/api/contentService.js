@@ -1,4 +1,12 @@
 const CONTENT_SERVICE_URL = import.meta.env.VITE_CONTENT_SERVICE_URL
+const CACHE_PREFIX = 'content-cache:'
+const MAX_TENTATIVAS = 3
+
+function cacheKey(caminho) { return `${CACHE_PREFIX}${caminho}` }
+function lerCache(caminho) { try { return JSON.parse(localStorage.getItem(cacheKey(caminho)) || 'null') } catch { return null } }
+function salvarCache(caminho, dados) { try { localStorage.setItem(cacheKey(caminho), JSON.stringify({ dados, salvoEm: Date.now() })) } catch { /* cache é opcional */ } }
+function transitório(status) { return status === 408 || status === 425 || status === 429 || status >= 500 }
+async function esperar(ms) { return new Promise((resolve) => setTimeout(resolve, ms)) }
 
 if (!CONTENT_SERVICE_URL) {
   throw new Error(
@@ -6,39 +14,32 @@ if (!CONTENT_SERVICE_URL) {
   )
 }
 
-async function requisicaoAutenticada(caminho, opcoes = {}) {
+async function requisicaoAutenticada(caminho, opcoes = {}, configuracao = {}) {
   const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('Sessão não encontrada. Faça login novamente.')
-  }
-
-  const resposta = await fetch(`${CONTENT_SERVICE_URL}${caminho}`, {
-    ...opcoes,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...opcoes.headers,
-    },
-  })
-
-  if (resposta.status === 401) {
-    localStorage.removeItem('access_token')
-    throw new Error('Sessão expirada. Faça login novamente.')
-  }
-
-  if (!resposta.ok) {
-    let detalhe
+  if (!token) throw new Error('Sessão não encontrada. Faça login novamente.')
+  const cacheavel = configuracao.cache !== false && (!opcoes.method || opcoes.method === 'GET')
+  let ultimaFalha
+  for (let tentativa = 0; tentativa < MAX_TENTATIVAS; tentativa += 1) {
     try {
-      detalhe = (await resposta.json()).detail
-    } catch {
-      detalhe = null
+      const resposta = await fetch(`${CONTENT_SERVICE_URL}${caminho}`, { ...opcoes, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...opcoes.headers } })
+      if (resposta.status === 401) { localStorage.removeItem('access_token'); throw new Error('Sessão expirada. Faça login novamente.') }
+      if (!resposta.ok) {
+        let detalhe = null; try { detalhe = (await resposta.json()).detail } catch { /* sem JSON */ }
+        const erro = new Error(typeof detalhe === 'string' ? detalhe : 'Não foi possível concluir a operação.')
+        erro.tentarNovamente = transitório(resposta.status)
+        throw erro
+      }
+      const dados = resposta.status === 204 ? null : await resposta.json()
+      if (cacheavel) salvarCache(caminho, dados)
+      return dados
+    } catch (erro) {
+      ultimaFalha = erro
+      if (!erro.tentarNovamente && !(erro instanceof TypeError)) throw erro
+      if (tentativa < MAX_TENTATIVAS - 1) await esperar(700 * (2 ** tentativa))
     }
-    throw new Error(
-      typeof detalhe === 'string' ? detalhe : 'Não foi possível concluir a operação.'
-    )
   }
-
-  return resposta.status === 204 ? null : resposta.json()
+  if (cacheavel) { const cache = lerCache(caminho); if (cache) return cache.dados }
+  throw ultimaFalha || new Error('Não foi possível concluir a operação após novas tentativas.')
 }
 
 async function requisicaoMultipart(caminho, formulario, metodo = 'POST') {
@@ -56,6 +57,8 @@ async function requisicaoMultipart(caminho, formulario, metodo = 'POST') {
   }
   return resposta.json()
 }
+
+export function obterCacheConteudo(caminho) { return lerCache(caminho)?.dados ?? null }
 
 export function criarConteudo(dados) {
   return requisicaoAutenticada('/conteudos', {
@@ -103,9 +106,7 @@ export function gerarImagens(conteudoId, opcoes) {
   })
 }
 
-export function obterMarca(clienteId) {
-  return requisicaoAutenticada(`/marcas/${clienteId}`)
-}
+export function obterMarca(clienteId) { return requisicaoAutenticada(`/marcas/${clienteId}`) }
 
 export function salvarMarca(clienteId, formulario) {
   return requisicaoMultipart(`/marcas/${clienteId}`, formulario, 'PUT')
@@ -138,4 +139,21 @@ export function salvarArsenal(clienteId, dados) {
     method: 'PUT',
     body: JSON.stringify(dados),
   })
+}
+
+export function obterEstrategia(clienteId, tipo) { return requisicaoAutenticada(`/estrategias/${clienteId}/${tipo}`) }
+
+export function obterLinhaEditorial(clienteId) {
+  return requisicaoAutenticada(`/estrategias/${clienteId}/linha-editorial`)
+}
+
+export function gerarBriefingDaLinha(clienteId, ideia) {
+  return requisicaoAutenticada(`/estrategias/${clienteId}/briefing-conteudo`, {
+    method: 'POST',
+    body: JSON.stringify({ ideia }),
+  })
+}
+
+export function gerarEstrategia(clienteId, tipo) {
+  return requisicaoAutenticada(`/estrategias/${clienteId}/${tipo}`, { method: 'POST' })
 }

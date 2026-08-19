@@ -6,6 +6,7 @@ from app.routes import router
 from app.brand_routes import router as brand_router
 from app.media_routes import router as media_router
 from app.arsenal_routes import router as arsenal_router
+from app.strategy_routes import router as strategy_router
 
 
 app = FastAPI(
@@ -26,6 +27,7 @@ app.include_router(router)
 app.include_router(brand_router)
 app.include_router(media_router)
 app.include_router(arsenal_router)
+app.include_router(strategy_router)
 
 
 @app.get("/health", tags=["infraestrutura"])

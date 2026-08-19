@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -20,16 +20,18 @@ def verificar_senha(senha_texto_puro: str, senha_hash: str) -> bool:
 
 
 def criar_token_acesso(dados: dict) -> str:
-    """Cria um token JWT assinado, contendo os dados informados e uma data de expiração."""
+    """Cria um JWT persistente, sem expiração automática.
+
+    A sessão permanece válida enquanto o token existir no navegador. O logout
+    remove o token do frontend e, portanto, exige um novo login nesse cliente.
+    """
     dados_para_codificar = dados.copy()
-    expira_em = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
-    dados_para_codificar.update({"exp": expira_em})
-    token = jwt.encode(dados_para_codificar, settings.secret_key, algorithm=settings.algorithm)
-    return token
+    # Não incluímos ``exp``: a sessão não expira por tempo de uso.
+    return jwt.encode(dados_para_codificar, settings.secret_key, algorithm=settings.algorithm)
 
 
 def validar_token(token: str) -> dict | None:
-    """Verifica se um token é válido e não expirou. Retorna os dados dele ou None."""
+    """Verifica a assinatura do token e retorna seus dados ou None."""
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         return payload

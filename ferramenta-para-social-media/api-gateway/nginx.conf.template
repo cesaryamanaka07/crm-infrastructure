@@ -1,6 +1,7 @@
 server {
     listen ${GATEWAY_CONTAINER_PORT};
     server_name _;
+    client_max_body_size 200m;
 
     location = /gateway-health {
         access_log off;
@@ -11,30 +12,30 @@ server {
     location ^~ /api/auth/ {
         rewrite ^/api/auth/?(.*)$ /$1 break;
         proxy_pass ${AUTH_SERVICE_URL};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme;
     }
-
     location ^~ /api/content/ {
         rewrite ^/api/content/?(.*)$ /$1 break;
         proxy_pass ${CONTENT_SERVICE_URL};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme;
     }
-
     location ^~ /api/social/ {
         rewrite ^/api/social/?(.*)$ /$1 break;
         proxy_pass ${SOCIAL_SERVICE_URL};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_request_buffering off;
+        proxy_read_timeout 180s;
     }
-
+    location ^~ /api/automation/ {
+        rewrite ^/api/automation/?(.*)$ /$1 break;
+        proxy_pass ${AUTOMATION_SERVICE_URL};
+        proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location ^~ /api/blog/ {
+        rewrite ^/api/blog/?(.*)$ /$1 break;
+        proxy_pass ${BLOG_SERVICE_URL};
+        proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme;
+    }
     location / {
         default_type application/json;
         return 404 '{"detail":"Rota não encontrada"}';

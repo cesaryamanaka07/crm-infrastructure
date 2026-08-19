@@ -1,0 +1,16 @@
+services:
+  automation-service:
+    build: .
+    container_name: automation-service
+    restart: unless-stopped
+    env_file:
+      - ../content-service/.env
+      - .env
+      - ../social-service/.env
+    expose:
+      - "${SERVICE_PORT}"
+    networks:
+      - plataforma_network
+networks:
+  plataforma_network:
+    external: true

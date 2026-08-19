@@ -1,0 +1,35 @@
+.pagina-agendamento { max-width: 1400px; }
+.formulario-agendamento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.campo-hashtags { border: 0; }
+.campo-hashtags legend, .formulario-agendamento fieldset > legend { color: #374151; font-size: .84rem; font-weight: 700; margin-bottom: .45rem; }
+.grade-hashtags { display: grid; gap: .55rem; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.grade-hashtags input { min-width: 0; }
+.item-slide-postagem { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; display: grid; gap: .4rem; margin-top: .75rem; padding: .8rem; }
+.item-slide-postagem label { color: #475569; font-size: .76rem; font-weight: 700; }
+.item-slide-postagem textarea { min-height: 95px; }
+.arquivos-selecionados { color: #4f46e5; font-size: .78rem; overflow-wrap: anywhere; }
+.grade-redes-postagem { display: grid; gap: .65rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grade-redes-postagem label { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; display: grid; gap: .2rem; padding: .75rem; }
+.grade-redes-postagem label input { width: auto; }
+.grade-redes-postagem label small { color: #64748b; font-size: .72rem; overflow-wrap: anywhere; }
+.grade-redes-postagem .rede-postagem-ativa { background: #eef2ff; border-color: #6366f1; }
+.opcao-agendamento { align-items: center; display: flex; gap: .5rem; font-weight: 700; }
+.opcao-agendamento input { width: auto; }
+.acoes-agendamento { display: flex; flex-wrap: wrap; gap: .7rem; }
+.acoes-agendamento button { align-items: center; display: inline-flex; gap: .45rem; }
+.botao-agendar { border-color: #4f46e5; color: #3730a3; }
+.historico-publicacoes { display: grid; gap: .8rem; margin-top: 1.5rem; }
+.historico-publicacoes h2 { font-size: 1.05rem; }
+.cartao-publicacao { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; display: grid; gap: .55rem; padding: 1rem; }
+.cartao-publicacao header { align-items: center; display: flex; gap: .7rem; justify-content: space-between; }
+.cartao-publicacao p { color: #64748b; font-size: .78rem; }
+.status-publicacao { border-radius: 999px; font-size: .7rem; font-weight: 800; padding: .25rem .55rem; }
+.status-publicada { background: #dcfce7; color: #166534; }.status-agendada { background: #dbeafe; color: #1e40af; }.status-erro { background: #fee2e2; color: #991b1b; }.status-parcial { background: #fef3c7; color: #92400e; }
+.status-redes-publicacao { display: grid; gap: .3rem; }
+.status-redes-publicacao span { align-items: flex-start; color: #475569; display: flex; font-size: .75rem; gap: .35rem; overflow-wrap: anywhere; }
+[data-theme="dark"] .item-slide-postagem, [data-theme="dark"] .grade-redes-postagem label, [data-theme="dark"] .cartao-publicacao { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+[data-theme="dark"] .campo-hashtags legend, [data-theme="dark"] .formulario-agendamento fieldset > legend { color: #e2e8f0; }
+[data-theme="dark"] .grade-redes-postagem label small, [data-theme="dark"] .cartao-publicacao p, [data-theme="dark"] .status-redes-publicacao span { color: #cbd5e1; }
+[data-theme="dark"] .grade-redes-postagem .rede-postagem-ativa { background: #312e81; border-color: #818cf8; }
+@media (max-width: 850px) { .formulario-agendamento { grid-template-columns: 1fr; } .grade-hashtags, .grade-redes-postagem { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .grade-hashtags, .grade-redes-postagem { grid-template-columns: 1fr; } }

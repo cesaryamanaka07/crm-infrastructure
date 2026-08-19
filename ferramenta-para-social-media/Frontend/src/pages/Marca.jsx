@@ -3,6 +3,7 @@ import { LoaderCircle, Trash2, Upload } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { excluirLogo, obterMarca, salvarMarca } from '../api/contentService'
 import { listarClientes } from '../api/clientesService'
+import { escolherClienteInicial } from '../utils/clienteAtivo'
 
 const identidadeVazia = () => ({ cores: ['#6C5CE7', '#FFFFFF', '#111827'], tipografia: 'Montserrat', logosAtuais: [] })
 const diretrizesVazias = () => ({
@@ -65,22 +66,23 @@ function Marca() {
   const [logos, setLogos] = useState([])
   const [logosAtuais, setLogosAtuais] = useState([])
   const [diretrizes, setDiretrizes] = useState(diretrizesVazias())
+  const [hashtagsPadrao, setHashtagsPadrao] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [mensagem, setMensagem] = useState('')
 
-  useEffect(() => { listarClientes().then((itens) => { setClientes(itens); if (itens[0]) setClienteId(itens[0].id) }).catch((e) => setMensagem(e.message)) }, [])
+  useEffect(() => { listarClientes().then((itens) => { setClientes(itens); setClienteId(escolherClienteInicial(itens)) }).catch((e) => setMensagem(e.message)) }, [])
   useEffect(() => {
     if (!clienteId) return
     setMensagem(''); setLogos([])
-    obterMarca(clienteId).then((marca) => { setCores(marca.paleta); setTipografia(marca.tipografia); setLogosAtuais(marca.logos || []); setDiretrizes({ ...diretrizesVazias(), ...(marca.diretrizes_visuais || {}) }) })
-      .catch(() => { const vazia = identidadeVazia(); setCores(vazia.cores); setTipografia(vazia.tipografia); setLogosAtuais([]); setDiretrizes(diretrizesVazias()) })
+    obterMarca(clienteId).then((marca) => { setCores(marca.paleta); setTipografia(marca.tipografia); setLogosAtuais(marca.logos || []); setDiretrizes({ ...diretrizesVazias(), ...(marca.diretrizes_visuais || {}) }); setHashtagsPadrao((marca.hashtags_padrao || []).join(' ')) })
+      .catch(() => { const vazia = identidadeVazia(); setCores(vazia.cores); setTipografia(vazia.tipografia); setLogosAtuais([]); setDiretrizes(diretrizesVazias()); setHashtagsPadrao('') })
   }, [clienteId])
 
   function alterarCor(indice, cor) { setCores((atuais) => atuais.map((item, i) => i === indice ? cor : item)) }
 
   async function enviar(evento) {
     evento.preventDefault(); setSalvando(true); setMensagem('')
-    const dados = new FormData(); dados.append('paleta', JSON.stringify(cores)); dados.append('tipografia', tipografia); dados.append('diretrizes_visuais', JSON.stringify(diretrizes))
+    const dados = new FormData(); dados.append('paleta', JSON.stringify(cores)); dados.append('tipografia', tipografia); dados.append('diretrizes_visuais', JSON.stringify(diretrizes)); dados.append('hashtags_padrao', hashtagsPadrao)
     logos.forEach((logo) => dados.append('logos', logo))
     try {
       const marca = await salvarMarca(clienteId, dados)
@@ -103,6 +105,7 @@ function Marca() {
       <div className="campo-formulario campo-largo"><label>Cliente</label><select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>{clientes.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.nome}</option>)}</select></div>
       <fieldset className="campo-formulario campo-largo"><legend>Paleta de cores</legend><div className="lista-cores-marca">{cores.map((cor, indice) => <label key={indice}><input type="color" value={cor} onChange={(e) => alterarCor(indice, e.target.value.toUpperCase())} /><input value={cor} pattern="#[0-9A-Fa-f]{6}" onChange={(e) => alterarCor(indice, e.target.value)} />{cores.length > 1 && <button type="button" onClick={() => setCores((c) => c.filter((_, i) => i !== indice))}>Remover</button>}</label>)}</div>{cores.length < 8 && <button type="button" className="botao-secundario" onClick={() => setCores((c) => [...c, '#000000'])}>Adicionar cor</button>}</fieldset>
       <div className="campo-formulario campo-largo"><label>Tipografia principal da marca</label><select value={tipografia} onChange={(e) => setTipografia(e.target.value)} required>{!TIPOGRAFIAS.some((grupo) => grupo.fontes.includes(tipografia)) && tipografia && <option value={tipografia}>{tipografia} — configuração atual</option>}{TIPOGRAFIAS.map((grupo) => <optgroup key={grupo.grupo} label={grupo.grupo}>{grupo.fontes.map((fonte) => <option key={fonte} value={fonte}>{fonte}</option>)}</optgroup>)}</select><small>As fontes estão organizadas por estilo para facilitar a escolha da personalidade da marca.</small></div>
+      <div className="campo-formulario campo-largo"><label htmlFor="hashtags-padrao">Hashtags padrão do cliente</label><textarea id="hashtags-padrao" value={hashtagsPadrao} onChange={(e) => setHashtagsPadrao(e.target.value)} placeholder="#minhamarca #segmento #cidade" /><small>Serão priorizadas nas criações de conteúdo. Separe por espaço, vírgula ou quebra de linha.</small></div>
       <fieldset className="campo-formulario campo-largo diretrizes-marca"><legend>Direção visual permanente</legend>
         <label><span>Tom visual padrão</span><select value={diretrizes.tom_visual} onChange={(e) => setDiretrizes((d) => ({ ...d, tom_visual: e.target.value }))}><option>Profissional e equilibrado</option><option>Pastel, suave e delicado</option><option>Escuro, dramático e contrastado</option><option>Claro, leve e minimalista</option><option>Vibrante, colorido e energético</option><option>Elegante, sofisticado e premium</option><option>Natural, orgânico e acolhedor</option><option>Futurista, tecnológico e neon</option></select></label>
         {[['estilo','Estilo fotográfico ou ilustrativo'],['contraste','Nível de contraste'],['iluminacao','Iluminação'],['texturas','Texturas'],['fundo','Tipo de fundo'],['composicao','Composição preferida'],['elementos','Elementos predominantes'],['posicao_logo','Posicionamento da logo'],['margens','Margens e espaços']].map(([chave, rotulo]) => <label key={chave}><span>{rotulo}</span><select value={diretrizes[chave]} onChange={(e) => setDiretrizes((d) => ({ ...d, [chave]: e.target.value }))}><option value="">Selecione uma opção</option><OpcoesComValorAtual valores={OPCOES_DIRETRIZES[chave]} atual={diretrizes[chave]} /></select></label>)}

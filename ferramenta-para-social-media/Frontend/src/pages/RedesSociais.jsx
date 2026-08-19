@@ -3,10 +3,12 @@ import { CheckCircle2, Facebook, Instagram, Linkedin, Link2, LoaderCircle, Unlin
 import Sidebar from '../components/Sidebar'
 import { desconectarRede, iniciarConexao, listarConexoes, selecionarConexao } from '../api/socialService'
 import { listarClientes } from '../api/clientesService'
+import { escolherClienteInicial } from '../utils/clienteAtivo'
 
 const REDES = [
-  { provider: 'facebook', nome: 'Facebook', descricao: 'Conecte separadamente uma Página do Facebook.', Icone: Facebook },
-  { provider: 'instagram', nome: 'Instagram', descricao: 'Conecte separadamente uma conta profissional do Instagram.', Icone: Instagram },
+  { provider: 'facebook_page', nome: 'Facebook Página', descricao: 'Conecte Páginas administradas para métricas e futura publicação automática.', Icone: Facebook },
+  { provider: 'facebook_profile', nome: 'Facebook Perfil Pessoal', descricao: 'Autenticação e identificação básica. A Meta não permite publicação automática no perfil pessoal.', Icone: Facebook },
+  { provider: 'instagram', nome: 'Instagram', descricao: 'Conecte diretamente uma conta profissional do Instagram.', Icone: Instagram },
   { provider: 'linkedin', nome: 'LinkedIn', descricao: 'Conecte seu perfil para publicar conteúdos autorizados.', Icone: Linkedin },
 ]
 
@@ -20,11 +22,18 @@ function RedesSociais() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    if (params.get('conectado')) setMensagem('Rede social conectada com sucesso.')
-    if (params.get('erro')) {
-      const rede = params.get('rede')
+    const conectado = params.get('conectado')
+    const erro = params.get('erro')
+    const rede = params.get('rede')
+    if ((conectado || erro) && (window.opener || window.name === 'social-oauth')) {
+      if (window.opener) window.opener.postMessage({ type: 'social-oauth-result', conectado, erro, rede }, window.location.origin)
+      window.close()
+      return
+    }
+    if (conectado) setMensagem('Rede social conectada com sucesso.')
+    if (erro) {
       const prefixo = rede ? `${rede[0].toUpperCase()}${rede.slice(1)}: ` : ''
-      setMensagem(`${prefixo}${params.get('erro')}`)
+      setMensagem(`${prefixo}${erro}`)
     }
     if (params.has('conectado') || params.has('erro')) {
       window.history.replaceState({}, '', window.location.pathname)
@@ -32,17 +41,46 @@ function RedesSociais() {
     Promise.all([listarConexoes(), listarClientes()]).then(([listaConexoes, listaClientes]) => {
       setConexoes(listaConexoes)
       setClientes(listaClientes)
-      if (listaClientes[0]) setClienteId(listaClientes[0].id)
+      setClienteId(escolherClienteInicial(listaClientes))
     }).catch((e) => setMensagem(e.message)).finally(() => setCarregando(false))
+  }, [])
+
+  useEffect(() => {
+    function receberResultadoOAuth(evento) {
+      if (evento.origin !== window.location.origin || evento.data?.type !== 'social-oauth-result') return
+      const { conectado, erro, rede } = evento.data
+      if (conectado) {
+        setMensagem('Rede social conectada com sucesso.')
+        listarConexoes().then(setConexoes).catch((e) => setMensagem(e.message))
+      } else if (erro) {
+        const prefixo = rede ? `${rede[0].toUpperCase()}${rede.slice(1)}: ` : ''
+        setMensagem(`${prefixo}${erro}`)
+      }
+      setProcessando('')
+    }
+    window.addEventListener('message', receberResultadoOAuth)
+    return () => window.removeEventListener('message', receberResultadoOAuth)
   }, [])
 
   async function conectar(provider) {
     if (!clienteId) { setMensagem('Selecione um cliente antes de conectar a rede social.'); return }
+    const popup = window.open('', 'social-oauth', 'popup=yes,width=620,height=760,resizable=yes,scrollbars=yes')
     setProcessando(provider); setMensagem('')
     try {
       const data = await iniciarConexao(provider, clienteId)
-      window.location.assign(data.authorization_url)
-    } catch (e) { setMensagem(e.message); setProcessando('') }
+      if (popup) {
+        popup.location.assign(data.authorization_url)
+        const acompanharPopup = window.setInterval(() => {
+          if (!popup.closed) return
+          window.clearInterval(acompanharPopup)
+          listarConexoes().then(setConexoes).catch((e) => setMensagem(e.message)).finally(() => setProcessando(''))
+        }, 700)
+      }
+      else window.location.assign(data.authorization_url)
+    } catch (e) {
+      if (popup) popup.close()
+      setMensagem(e.message); setProcessando('')
+    }
   }
 
   async function remover(id) {
@@ -85,16 +123,26 @@ function RedesSociais() {
               {contas.map((conta) => <div key={conta.id} className={`conta-social ${conta.selecionada ? 'conta-social-ativa' : ''}`}>
                 <button className="seletor-conta" onClick={() => selecionar(conta.id, provider)} disabled={conta.selecionada || processando === conta.id}>
                   <CheckCircle2 size={18} />
-                  <span><strong>{conta.nome}</strong><small>{conta.selecionada ? 'Selecionada' : 'Selecionar esta conta'}</small></span>
+                  <span><strong>{conta.nome}</strong><small>{conta.tipo_token === 'temporario' ? 'Conexão temporária — Acesso Avançado pendente' : conta.selecionada ? 'Selecionada' : 'Selecionar esta conta'}</small></span>
                 </button>
                 <button className="botao-icone-remover" aria-label={`Desconectar ${conta.nome}`} onClick={() => remover(conta.id)} disabled={processando === conta.id}><Unlink size={16} /></button>
               </div>)}
             </div>}
             {contas.length === 0 && <small>Nenhuma conta conectada.</small>}
-            <button className={contas.length ? 'botao-secundario' : 'botao-primario'} onClick={() => conectar(provider)} disabled={processando === provider}>
+            {provider === 'instagram' ? <div className="acoes-conexao-instagram">
+              <button className={contas.length ? 'botao-secundario' : 'botao-primario'} onClick={() => conectar('instagram')} disabled={Boolean(processando)}>
+                {processando === 'instagram' ? <LoaderCircle className="icone-girando" size={16} /> : <Instagram size={16} />}
+                Entrar com Instagram
+              </button>
+              <button className="botao-secundario" onClick={() => conectar('instagram_facebook')} disabled={Boolean(processando)}>
+                {processando === 'instagram_facebook' ? <LoaderCircle className="icone-girando" size={16} /> : <Facebook size={16} />}
+                Conectar via Facebook
+              </button>
+              <small>Use o botão via Facebook quando o Instagram profissional estiver vinculado a uma Página administrada. A conta pessoal do Facebook será usada apenas para autorizar o acesso.</small>
+            </div> : <button className={contas.length ? 'botao-secundario' : 'botao-primario'} onClick={() => conectar(provider)} disabled={processando === provider}>
               {processando === provider ? <LoaderCircle className="icone-girando" size={16} /> : <Link2 size={16} />}
               {contas.length ? 'Conectar outra conta' : 'Conectar'}
-            </button>
+            </button>}
           </>}
         </article>
       })}

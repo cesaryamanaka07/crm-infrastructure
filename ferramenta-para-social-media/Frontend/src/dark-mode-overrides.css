@@ -1,0 +1,199 @@
+/* Correções finais de contraste para regras legadas do tema escuro. */
+[data-theme="dark"] {
+  --dark-bg: var(--app-bg, #0b1220);
+  --dark-sidebar: var(--sidebar-bg, #111827);
+  --dark-surface: var(--surface, #172033);
+  --dark-elevated: var(--surface-elevated, #1f2a3d);
+  --dark-input: var(--input-bg, #0f172a);
+  --dark-border: var(--border, #334155);
+  --dark-text: var(--text, #f8fafc);
+  --dark-muted: var(--text-muted, #cbd5e1);
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] #root,
+[data-theme="dark"] .layout-app,
+[data-theme="dark"] .conteudo-principal {
+  background-color: var(--dark-bg) !important;
+  color: var(--dark-text) !important;
+}
+
+[data-theme="dark"] .barra-lateral,
+[data-theme="dark"] .cartao-login,
+[data-theme="dark"] .cartao-formulario,
+[data-theme="dark"] .painel-rascunhos,
+[data-theme="dark"] .cartao-metrica,
+[data-theme="dark"] .cartao-post,
+[data-theme="dark"] .cartao-cliente,
+[data-theme="dark"] .dashboard-cliente,
+[data-theme="dark"] .cartao-rede-social,
+[data-theme="dark"] .formulario-cliente,
+[data-theme="dark"] .cartao-arsenal,
+[data-theme="dark"] .cartao-biblioteca,
+[data-theme="dark"] .cartao-contato,
+[data-theme="dark"] .cartao-insight-conta,
+[data-theme="dark"] .integracao-card,
+[data-theme="dark"] .blog-card,
+[data-theme="dark"] .crm-config-painel,
+[data-theme="dark"] .crm-modal,
+[data-theme="dark"] .crm-lista,
+[data-theme="dark"] .crm-calendario > article,
+[data-theme="dark"] .painel-selecao-insights,
+[data-theme="dark"] .barra-editor-automacao,
+[data-theme="dark"] .paleta-blocos,
+[data-theme="dark"] .grupo-automacoes,
+[data-theme="dark"] .cartao-contato,
+[data-theme="dark"] .aparencia-config-painel {
+  background-color: var(--dark-surface) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text) !important;
+}
+
+[data-theme="dark"] .barra-lateral { background-color: var(--dark-sidebar) !important; }
+[data-theme="dark"] .surface-elevated,
+[data-theme="dark"] .aparencia-preview,
+[data-theme="dark"] .aparencia-cor-campo,
+[data-theme="dark"] .lead-card,
+[data-theme="dark"] .item-editavel-biblioteca,
+[data-theme="dark"] .crm-log,
+[data-theme="dark"] .metricas-conta div,
+[data-theme="dark"] .respostas-contato > div,
+[data-theme="dark"] .kanban-coluna,
+[data-theme="dark"] .paleta-blocos button,
+[data-theme="dark"] .grupo-automacoes button,
+[data-theme="dark"] .menu-contexto-bloco,
+[data-theme="dark"] .bloco-fluxo {
+  background-color: var(--dark-elevated) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text) !important;
+}
+
+[data-theme="dark"] input:not([type="color"]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select,
+[data-theme="dark"] .crm-busca,
+[data-theme="dark"] .busca-biblioteca div {
+  background-color: var(--dark-input) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text) !important;
+}
+
+[data-theme="dark"] option { background-color: var(--dark-input) !important; color: var(--dark-text) !important; }
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder { color: var(--dark-muted) !important; opacity: 1 !important; }
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+[data-theme="dark"] strong,
+[data-theme="dark"] label,
+[data-theme="dark"] legend,
+[data-theme="dark"] td,
+[data-theme="dark"] th,
+[data-theme="dark"] .texto-marca,
+[data-theme="dark"] .valor-metrica,
+[data-theme="dark"] .integracao-card,
+[data-theme="dark"] .integracao-card h2 {
+  color: var(--dark-text) !important;
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] small,
+[data-theme="dark"] em,
+[data-theme="dark"] .texto-apoio,
+[data-theme="dark"] .estado-vazio,
+[data-theme="dark"] .topo-pagina p,
+[data-theme="dark"] .integracao-card p,
+[data-theme="dark"] .integracao-titulo p,
+[data-theme="dark"] .rotulo-metrica,
+[data-theme="dark"] .estatisticas-post,
+[data-theme="dark"] .cartao-rede-social p,
+[data-theme="dark"] .lead-card small,
+[data-theme="dark"] .crm-lista td small,
+[data-theme="dark"] .n8n-lista article small,
+[data-theme="dark"] .n8n-execucoes article small {
+  color: var(--dark-muted) !important;
+}
+
+[data-theme="dark"] .item-nav,
+[data-theme="dark"] .botao-secundario,
+[data-theme="dark"] .crm-modos button,
+[data-theme="dark"] .crm-config-tabs button,
+[data-theme="dark"] .blog-toolbar nav button,
+[data-theme="dark"] .acoes-biblioteca button,
+[data-theme="dark"] .seletor-conta,
+[data-theme="dark"] .botao-tema {
+  background-color: var(--dark-elevated) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text) !important;
+}
+
+[data-theme="dark"] .item-nav:hover,
+[data-theme="dark"] .botao-secundario:hover,
+[data-theme="dark"] .crm-modos button:hover,
+[data-theme="dark"] .crm-config-tabs button:hover,
+[data-theme="dark"] .blog-toolbar nav button:hover,
+[data-theme="dark"] .grupo-automacoes button:hover,
+[data-theme="dark"] .menu-contexto-bloco button:hover {
+  background-color: var(--dark-border) !important;
+  color: var(--dark-text) !important;
+}
+
+[data-theme="dark"] .item-nav-ativo,
+[data-theme="dark"] .crm-modos .ativo,
+[data-theme="dark"] .crm-config-tabs .ativo,
+[data-theme="dark"] .blog-toolbar nav .ativo {
+  background-color: var(--primary, #2563eb) !important;
+  border-color: var(--primary, #2563eb) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .botao-primario,
+[data-theme="dark"] .cartao-login button {
+  background-color: var(--primary, #2563eb) !important;
+  color: #ffffff !important;
+}
+[data-theme="dark"] .botao-primario:hover,
+[data-theme="dark"] .cartao-login button:hover:not(:disabled) { background-color: var(--primary-hover, #3b82f6) !important; }
+
+[data-theme="dark"] a,
+[data-theme="dark"] code,
+[data-theme="dark"] .botao-link,
+[data-theme="dark"] .botao-historico,
+[data-theme="dark"] .tipo-conteudo,
+[data-theme="dark"] .hashtags-conteudo-gerado,
+[data-theme="dark"] .melhores-conteudos a { color: var(--accent, #60a5fa) !important; }
+
+[data-theme="dark"] .mensagem-integracao { color: var(--dark-text) !important; }
+[data-theme="dark"] .mensagem-erro,
+[data-theme="dark"] .erro-insight,
+[data-theme="dark"] .acao-excluir-geracao { color: var(--danger, #f87171) !important; }
+[data-theme="dark"] .mensagem-sucesso { color: var(--success, #34d399) !important; }
+
+/* Vence cores inline antigas apenas nos contêineres; preserva .crm-preview e chips,
+   pois estes representam cores escolhidas pelo usuário. */
+[data-theme="dark"] .crm-config-item,
+[data-theme="dark"] .crm-lista th,
+[data-theme="dark"] .crm-lista td,
+[data-theme="dark"] .crm-calendario article > div,
+[data-theme="dark"] .itens-biblioteca,
+[data-theme="dark"] .historico-geracoes,
+[data-theme="dark"] .partes-conteudo-gerado,
+[data-theme="dark"] .legenda-conteudo-gerado,
+[data-theme="dark"] .melhores-conteudos,
+[data-theme="dark"] .lista-conexoes { border-color: var(--dark-border) !important; }
+
+[data-theme="dark"] .crm-modal-fundo { background-color: rgba(2, 6, 23, .78) !important; }
+[data-theme="dark"] .crm-calendario > article > header,
+[data-theme="dark"] .crm-log { background-color: var(--dark-input) !important; color: var(--dark-text) !important; }
+[data-theme="dark"] .canvas-automacao { background-color: var(--dark-input) !important; border-color: var(--dark-border) !important; }
+[data-theme="dark"] .canvas-vazio { color: var(--dark-muted) !important; }
+
+/* Mantém contraste correto para estados claros que são intencionais. */
+[data-theme="dark"] .status-open,
+[data-theme="dark"] .botao-aprovar-imagem { color: #ffffff !important; }
+[data-theme="dark"] button:disabled { color: var(--dark-muted) !important; }
+[data-theme="dark"] :focus-visible { outline: 2px solid var(--accent, #60a5fa) !important; outline-offset: 2px; }

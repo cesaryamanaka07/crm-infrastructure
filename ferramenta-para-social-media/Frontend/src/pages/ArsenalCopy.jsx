@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar'
 import { listarClientes } from '../api/clientesService'
 import { obterArsenal, salvarArsenal } from '../api/contentService'
 import { GRUPOS_ARSENAL } from '../constants/arsenalCampos'
+import { escolherClienteInicial } from '../utils/clienteAtivo'
 
 function ArsenalCopy() {
   const [clientes, setClientes] = useState([])
@@ -16,7 +17,7 @@ function ArsenalCopy() {
   useEffect(() => {
     listarClientes().then((lista) => {
       setClientes(lista)
-      if (lista[0]) setClienteId(lista[0].id)
+      setClienteId(escolherClienteInicial(lista))
     }).catch((erro) => setMensagem(erro.message))
   }, [])
 

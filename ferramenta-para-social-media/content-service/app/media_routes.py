@@ -8,7 +8,7 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -55,29 +55,95 @@ async def _baixar_imagem(item: dict) -> bytes:
     raise ValueError("Imagem sem conteúdo")
 
 
+def _carregar_fonte(tamanho: int):
+    candidatos = (
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
+    )
+    for caminho in candidatos:
+        try:
+            return ImageFont.truetype(caminho, tamanho)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
+def _quebrar_texto(draw: ImageDraw.ImageDraw, texto: str, fonte, largura: int) -> list[str]:
+    linhas = []
+    for paragrafo in texto.splitlines() or [texto]:
+        palavras = paragrafo.split()
+        atual = ""
+        for palavra in palavras:
+            candidato = f"{atual} {palavra}".strip()
+            if atual and draw.textbbox((0, 0), candidato, font=fonte)[2] > largura:
+                linhas.append(atual)
+                atual = palavra
+            else:
+                atual = candidato
+        if atual:
+            linhas.append(atual)
+    return linhas or [""]
+
+
+def _aplicar_texto_slide(imagem: Image.Image, texto: str, arraste_lateral: bool):
+    draw = ImageDraw.Draw(imagem, "RGBA")
+    margem = max(48, imagem.width // 14)
+    largura = imagem.width - (margem * 2)
+    largura_texto = int(largura * 0.86)
+    tamanho_fonte = max(34, imagem.width // 13)
+    fonte = _carregar_fonte(tamanho_fonte)
+    linhas = _quebrar_texto(draw, texto.strip(), fonte, largura_texto)
+    # Mantém o texto grande, mas reduz a fonte quando o título é muito extenso.
+    while len(linhas) > 5 and tamanho_fonte > 34:
+        tamanho_fonte = max(34, tamanho_fonte - 4)
+        fonte = _carregar_fonte(tamanho_fonte)
+        linhas = _quebrar_texto(draw, texto.strip(), fonte, largura_texto)
+    altura_linha = max(42, int(draw.textbbox((0, 0), "Ag", font=fonte)[3] * 1.18))
+    altura_caixa = altura_linha * len(linhas) + max(42, imagem.height // 35)
+    topo = max(margem, imagem.height - altura_caixa - margem)
+    draw.rounded_rectangle(
+        (margem - 22, topo - 18, imagem.width - margem + 22, topo + altura_caixa),
+        radius=18,
+        fill=(0, 0, 0, 178),
+    )
+    for indice, linha in enumerate(linhas):
+        draw.text((margem, topo + indice * altura_linha), linha, font=fonte, fill=(255, 255, 255, 255))
+    if arraste_lateral:
+        aviso = "Arraste para o lado 👉"
+        fonte_aviso = _carregar_fonte(max(24, imagem.width // 34))
+        caixa = draw.textbbox((0, 0), aviso, font=fonte_aviso)
+        largura_aviso = caixa[2] - caixa[0]
+        x = imagem.width - largura_aviso - margem
+        y = max(18, imagem.height - margem // 2 - (caixa[3] - caixa[1]))
+        draw.rounded_rectangle((x - 14, y - 8, imagem.width - margem + 14, y + caixa[3] - caixa[1] + 8), radius=12, fill=(0, 0, 0, 190))
+        draw.text((x, y), aviso, font=fonte_aviso, fill=(255, 255, 255, 255))
+
+
 def _aplicar_identidade(
     imagem_bytes: bytes,
     logo_bytes: bytes | None,
     referencia_bytes: bytes | None,
     dimensoes: tuple[int, int],
+    texto_slide: str = "",
+    arraste_lateral: bool = False,
 ) -> str:
-    with Image.open(io.BytesIO(imagem_bytes)) as original:
-        imagem = ImageOps.fit(
-            ImageOps.exif_transpose(original).convert("RGBA"),
-            dimensoes,
-            method=Image.Resampling.LANCZOS,
-        )
-
     if referencia_bytes:
         with Image.open(io.BytesIO(referencia_bytes)) as referencia_original:
-            referencia = ImageOps.exif_transpose(referencia_original).convert("RGBA")
-        largura = max(120, int(imagem.width * 0.28))
-        referencia.thumbnail((largura, largura), Image.Resampling.LANCZOS)
-        borda = max(4, imagem.width // 180)
-        moldura = ImageOps.expand(referencia, border=borda, fill="white")
-        margem = max(20, imagem.width // 30)
-        posicao = (imagem.width - moldura.width - margem, imagem.height - moldura.height - margem)
-        imagem.alpha_composite(moldura, posicao)
+            imagem = ImageOps.fit(
+                ImageOps.exif_transpose(referencia_original).convert("RGBA"),
+                dimensoes,
+                method=Image.Resampling.LANCZOS,
+            )
+    else:
+        with Image.open(io.BytesIO(imagem_bytes)) as original:
+            imagem = ImageOps.fit(
+                ImageOps.exif_transpose(original).convert("RGBA"),
+                dimensoes,
+                method=Image.Resampling.LANCZOS,
+            )
+
+    if texto_slide.strip():
+        _aplicar_texto_slide(imagem, texto_slide, arraste_lateral)
 
     if logo_bytes:
         with Image.open(io.BytesIO(logo_bytes)) as logo_original:
@@ -85,9 +151,7 @@ def _aplicar_identidade(
         limite = (max(100, int(imagem.width * 0.16)), max(70, int(imagem.height * 0.10)))
         logo.thumbnail(limite, Image.Resampling.LANCZOS)
         margem = max(20, imagem.width // 30)
-        fundo = Image.new("RGBA", (logo.width + 20, logo.height + 20), (255, 255, 255, 210))
-        fundo.alpha_composite(logo, (10, 10))
-        imagem.alpha_composite(fundo, (margem, margem))
+        imagem.alpha_composite(logo, (margem, margem))
 
     saida = io.BytesIO()
     imagem.convert("RGB").save(saida, format="PNG", optimize=True)
@@ -107,6 +171,9 @@ async def gerar_imagem_de_marca(
     referencia: UploadFile | None = File(default=None),
     referencias_carrossel: list[UploadFile] = File(default=[]),
     indices_referencias: str | None = Form(default=None),
+    arraste_por_slide: str | None = Form(default=None),
+    texto_slide: str | None = Form(default=None, max_length=500),
+    arraste_lateral: bool = Form(default=False),
     geracao_texto_id: UUID | None = Form(default=None),
     conteudo_indice: int | None = Form(default=None),
     usuario_id: UUID = Depends(obter_usuario_id),
@@ -120,6 +187,11 @@ async def gerar_imagem_de_marca(
         raise HTTPException(
             status_code=422,
             detail="A quantidade só pode ser alterada para Carrossel",
+        )
+    if formato != "carrossel" and not (texto_slide or "").strip():
+        raise HTTPException(
+            status_code=422,
+            detail="Informe o texto grande que deverá aparecer na arte",
         )
     if geracao_texto_id is not None:
         geracao_origem = db.scalar(
@@ -178,6 +250,15 @@ async def gerar_imagem_de_marca(
         if len(referencia_bytes) > 10 * 1024 * 1024:
             raise HTTPException(status_code=413, detail="A referência deve ter no máximo 10 MB")
 
+    arraste_slides: list[bool] = []
+    if formato == "carrossel":
+        try:
+            arraste_slides = json.loads(arraste_por_slide or "[]")
+        except json.JSONDecodeError as erro:
+            raise HTTPException(status_code=422, detail="Configuração de arraste inválida") from erro
+        if not isinstance(arraste_slides, list) or len(arraste_slides) != quantidade or any(not isinstance(item, bool) for item in arraste_slides):
+            raise HTTPException(status_code=422, detail="Configuração de arraste do carrossel inválida")
+
     referencias_por_slide: dict[int, bytes] = {}
     if formato == "carrossel":
         try:
@@ -219,7 +300,8 @@ async def gerar_imagem_de_marca(
                     f"Direção geral: {descricao}. Composição desta imagem: {descricao_slide}. "
                     f"Crie a peça {indice} de um total de {quantidade}, "
                     f"usando este texto exatamente: {texto_slide}. "
-                    "Mantenha unidade visual com as demais peças e varie a composição."
+                    "Mantenha unidade visual com as demais peças e varie a composição. "
+                "O texto será aplicado pela plataforma; não invente nem altere palavras."
                 ),
                 paleta=marca.paleta,
                 tipografia=marca.tipografia,
@@ -246,6 +328,8 @@ async def gerar_imagem_de_marca(
                 logo_principal,
                 referencias_por_slide.get(indice) if formato == "carrossel" else referencia_bytes,
                 dimensoes_finais,
+                textos[indice] if textos else (texto_slide or ""),
+                arraste_slides[indice] if formato == "carrossel" else arraste_lateral,
             )
             arquivos_png.append(base64.b64decode(png_base64))
             imagens.append(f"data:image/png;base64,{png_base64}")
